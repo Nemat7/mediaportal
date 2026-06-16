@@ -18,7 +18,7 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
   return (
     <div style={{ minHeight: "100vh", background: "#fff" }}>
 
-      <VideoPlayer videoId={id} backdrop={item.backdrop} title={item.title} duration={item.duration} />
+      <VideoPlayer videoId={id} backdrop={item.backdrop} title={item.title} duration={item.duration} bunnyVideoId={item.bunnyVideoId} />
 
       {/* Content */}
       <div className="watch-content">

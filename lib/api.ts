@@ -21,6 +21,7 @@ interface ApiVideo {
   is_new: boolean;
   is_popular: boolean;
   is_hero: boolean;
+  bunny_video_id?: string;
 }
 
 interface PaginatedResponse<T> {
@@ -53,8 +54,9 @@ function mapVideo(v: ApiVideo): MediaItem {
     backdrop:    v.backdrop  ?? "",
     views:       formatViews(v.views),
     studio:      v.studio,
-    isNew:       v.is_new,
-    isPopular:   v.is_popular,
+    isNew:        v.is_new,
+    isPopular:    v.is_popular,
+    bunnyVideoId: v.bunny_video_id || undefined,
   };
 }
 

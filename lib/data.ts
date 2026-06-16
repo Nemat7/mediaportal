@@ -14,6 +14,7 @@ export type MediaItem = {
   studio?: string;
   isNew?: boolean;
   isPopular?: boolean;
+  bunnyVideoId?: string;
 };
 
 export const categories = [
