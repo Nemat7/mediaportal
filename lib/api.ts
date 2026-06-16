@@ -94,7 +94,7 @@ export async function fetchByCategory(slug: string): Promise<MediaItem[]> {
 }
 
 export async function fetchAll(): Promise<MediaItem[]> {
-  const data = await get<PaginatedResponse<ApiVideo>>("/videos/", { page_size: "100" });
+  const data = await get<PaginatedResponse<ApiVideo>>("/videos/", { page_size: "10" });
   return data.results.map(mapVideo);
 }
 
@@ -108,8 +108,11 @@ export async function fetchVideoById(id: string): Promise<MediaItem | null> {
 }
 
 export async function fetchRelated(categorySlug: string, excludeId: string): Promise<MediaItem[]> {
-  const items = await fetchByCategory(categorySlug);
-  return items.filter((v) => v.id !== excludeId).slice(0, 8);
+  const data = await get<PaginatedResponse<ApiVideo>>("/videos/", {
+    category__slug: categorySlug,
+    page_size: "9",
+  });
+  return data.results.map(mapVideo).filter((v) => v.id !== excludeId).slice(0, 8);
 }
 
 export async function fetchSearch(params: {

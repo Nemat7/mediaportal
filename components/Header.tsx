@@ -21,7 +21,7 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -67,7 +67,9 @@ export default function Header() {
 
         {/* Auth buttons — hidden on mobile */}
         <div className="header-desktop-actions" style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-          {user ? (
+          {loading ? (
+            <div style={{ width: 90, height: 36, borderRadius: 100, background: "var(--bg-card)", opacity: 0.4 }} />
+          ) : user ? (
             <Link href="/profile" style={{
               display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
               padding: "6px 14px", borderRadius: 100, border: "2px solid var(--border)",
@@ -170,9 +172,36 @@ export default function Header() {
               );
             })}
           </div>
-          <div style={{ display: "flex", gap: 10, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-            <button style={{ flex: 1, padding: "11px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", border: "2px solid var(--border)", background: "transparent", color: "var(--text-secondary)", fontFamily: "inherit" }}>Войти</button>
-            <button style={{ flex: 1, padding: "11px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", border: "none", background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", color: "white", fontFamily: "inherit" }}>Подписка</button>
+
+          {/* Mobile auth — fix: onClick handlers + show user state */}
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+            {loading ? (
+              <div style={{ height: 44, borderRadius: 10, background: "var(--bg-card)", opacity: 0.4 }} />
+            ) : user ? (
+              <Link href="/profile" onClick={() => setMenuOpen(false)}
+                style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--border)" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 13, fontWeight: 900, flexShrink: 0 }}>
+                  {user.username[0].toUpperCase()}
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>{user.first_name || user.username}</p>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>{user.email}</p>
+                </div>
+              </Link>
+            ) : (
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { router.push("/login"); setMenuOpen(false); }}
+                  style={{ flex: 1, padding: "11px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", border: "2px solid var(--border)", background: "transparent", color: "var(--text-secondary)", fontFamily: "inherit" }}>
+                  Войти
+                </button>
+                <button
+                  onClick={() => { router.push("/register"); setMenuOpen(false); }}
+                  style={{ flex: 1, padding: "11px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", border: "none", background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", color: "white", fontFamily: "inherit" }}>
+                  Подписка
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

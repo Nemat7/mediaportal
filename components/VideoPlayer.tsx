@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
 function parseDuration(duration: string): number {
   const hms = duration.match(/^(\d+):(\d+):(\d+)$/);
   if (hms) return +hms[1] * 3600 + +hms[2] * 60 + +hms[3];
@@ -27,13 +29,28 @@ function fmtTime(s: number): string {
 export default function VideoPlayer({ videoId, backdrop, title, duration }: {
   videoId: string; backdrop: string; title: string; duration: string;
 }) {
-  const { user, updateProgress } = useAuth();
+  const { user, token, updateProgress } = useAuth();
   const total = parseDuration(duration);
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const elapsedRef = useRef(0);
 
   useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
+
+  // Restore saved progress on mount
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API}/auth/history/`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const results = data.results ?? data;
+        const entry = results.find((h: { video_id: number; progress: number }) => String(h.video_id) === videoId);
+        if (entry && entry.progress > 0) setElapsed(entry.progress);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, videoId]);
 
   // Tick every second while playing
   useEffect(() => {
