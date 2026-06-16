@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import VideoCard from "@/components/VideoCard";
-import { MediaItem } from "@/lib/data";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { fetchSearch } from "@/lib/api";
+import type { MediaItem } from "@/lib/data";
 
 const CATEGORIES = [
   { slug: "",         label: "Все" },
@@ -26,26 +25,7 @@ const SORT_OPTIONS = [
   { value: "year",      label: "Старые сначала" },
 ];
 
-function mapVideo(v: any): MediaItem {
-  return {
-    id:          String(v.id),
-    title:       v.title,
-    description: v.description ?? "",
-    year:        v.year,
-    rating:      v.rating,
-    duration:    v.duration,
-    quality:     v.quality,
-    category:    v.category?.slug ?? "",
-    tags:        (v.tags || []).map((t: any) => t.name),
-    thumbnail:   v.thumbnail ?? "",
-    backdrop:    v.backdrop  ?? "",
-    studio:      v.studio,
-    isNew:       v.is_new,
-    isPopular:   v.is_popular,
-  };
-}
-
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -61,14 +41,13 @@ export default function SearchPage() {
   const doSearch = useCallback(async (q: string, cat: string, ord: string) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page_size: "50" });
-      if (q)   params.set("search", q);
-      if (cat) params.set("category__slug", cat);
-      if (ord) params.set("ordering", ord);
-      const res = await fetch(`${API}/videos/?${params}`);
-      const data = await res.json();
-      setItems((data.results || []).map(mapVideo));
-      setCount(data.count ?? 0);
+      const result = await fetchSearch({
+        q: q || undefined,
+        category: cat || undefined,
+        ordering: ord || undefined,
+      });
+      setItems(result.items);
+      setCount(result.count);
     } catch {
       setItems([]);
     } finally {
@@ -76,17 +55,11 @@ export default function SearchPage() {
     }
   }, []);
 
-  // Run search whenever filters change
   useEffect(() => {
     doSearch(query, category, ordering);
   }, [query, category, ordering, doSearch]);
 
-  // Sync URL param on mount
-  useEffect(() => {
-    if (initialQ) doSearch(initialQ, "", "");
-  }, []); // eslint-disable-line
-
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setQuery(input);
     router.replace(`/search?q=${encodeURIComponent(input)}`, { scroll: false });
@@ -179,8 +152,15 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Pulse animation */}
       <style>{`@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.8} }`}</style>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "32px 24px", color: "var(--text-muted)" }}>Загрузка...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
