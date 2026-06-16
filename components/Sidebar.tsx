@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getCategoryCount } from "@/lib/data";
 
 /* ── icons ─────────────────────────────────────────────────────── */
 const Icon = ({ name }: { name: string }) => {
@@ -155,8 +154,7 @@ export default function Sidebar() {
           БИБЛИОТЕКА
         </div>
         {LIBRARY.map(item => (
-          <Item key={item.href} href={item.href} label={item.label} icon={item.icon}
-                count={getCategoryCount(item.slug)} />
+          <Item key={item.href} href={item.href} label={item.label} icon={item.icon} />
         ))}
       </div>
 
